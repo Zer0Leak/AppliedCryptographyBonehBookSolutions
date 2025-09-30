@@ -1,0 +1,78 @@
+\documentclass[a4paper,12pt,fleqn]{book}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{fancyhdr}  % Package to customize headers and footers
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{caption} % For \captionof command
+\usepackage{graphicx}
+\usepackage{fancyvrb} % For fixed-width text block
+\usepackage{amsmath, tikz}
+\usepackage{array}
+\usepackage{amsfonts}
+\usepackage{ulem}
+\usepackage{amssymb}
+\usepackage[most]{tcolorbox}
+
+\tcbset{solutionbox/.style={
+	fonttitle=\bfseries,
+	coltitle=black,
+	colback=white,
+	colframe=gray!50,
+	boxrule=0.8pt
+}}
+
+
+% Define C++ syntax highlighting style
+\lstdefinestyle{cppStyle}{
+	language=C++, 
+	basicstyle=\ttfamily\footnotesize, 
+	keywordstyle=\color{blue}\bfseries, 
+	commentstyle=\color{gray}\itshape, 
+	stringstyle=\color{red},
+	numbers=left,
+	numberstyle=\tiny\color{gray},
+	stepnumber=1,
+	breaklines=true,
+	frame=single
+}
+
+\hypersetup{
+	colorlinks=true,  % Habilita links coloridos
+	urlcolor=blue,    % Define a cor dos links para azul
+	pdfborder={0 0 0} % Remove qualquer borda ao redor dos links
+}
+
+% Set the page style to use fancyhdr
+\pagestyle{fancy}
+\fancyhf{}  % Clear all headers and footers
+\fancyhead{}  % Remove any content from the header
+\fancyfoot[R]{\thepage}  % Place page number at the bottom-right corner
+
+% Remove the header rule (underscore)
+\renewcommand{\headrulewidth}{0pt}
+
+\begin{document}
+
+\author{Edgard Lima \href{mailto:edgard.lima@gmail.com}{\textless edgard.lima@gmail.com\textgreater} \\
+\href{https://edgardlima.com}{https://edgardlima.com}}
+\title{Solutions to \\  \textit{Applied Cryptography} (Version 0.6, Jan. 2023) \\ by Boneh \& Shoup}
+
+\date{2025}
+
+\frontmatter
+\maketitle
+\tableofcontents
+
+\mainmatter
+
+\setcounter{chapter}{1}
+\include{./chapter02}
+% \include{./chapter02}
+
+\backmatter
+% bibliography, glossary and index would go here.
+
+\end{document}
