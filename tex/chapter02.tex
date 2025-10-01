@@ -1,15 +1,14 @@
 \chapter{Encyption}
 
 \noindent
-\textbf{1.1} \hspace{1em}
-\textbf{(multiplicative one-time pad)}. We may also define a “multiplication mod p” variation of the one-time pad.
+\textbf{2.1}
+\textbf{(multiplicative one-time pad).} We may also define a “multiplication mod p” variation of the one-time pad.
 This is a cipher E = (E, D), defined over (K, M, C), where K := M := C := {1, . . . , p-1}, where p is a prime.
 Encryption and decryption are defined as follows:
 \[
 E(k, m) := k \cdot m \bmod p \quad\quad
 D(k, c) := k^{-1} \cdot c \bmod p
 \]
-
 Here, $k^{-1}$ denotes the multiplicative inverse of k modulo p. Verify the correctness property for this
 cipher and prove that it is perfectly secure.
 
@@ -69,6 +68,53 @@ cipher and prove that it is perfectly secure.
     This is perfectly secure according to \textbf{Theorem 2.1 (ii)}
 \end{tcolorbox}
 
+\newpage
+\noindent
+\textbf{2.2}
+\textbf{(A good substitution cipher).} Consider a variant of the substitution cipher $\mathcal{E} = (E, D)$
+defined in Example 2.3 where every symbol of the message is encrypted using an independent
+permutation. That is, let $\mathcal{M} = \mathcal{C} = \Sigma^L$  for some a finite alphabet of symbols $\Sigma$ and some L. Let
+the key space be $\mathcal{K} = S^L$ where $S$ is the set of all permutations on $\Sigma$. The encryption algorithm
+E(k, m) is defined as:
+\[
+E(k, m) := k[0](m[0]), k[1](m[1]), . . . , k[L-1](m[L-1])
+\]
+Show that $\mathcal{E}$ is perfectly secure.
+
+
+\begin{tcolorbox}[solutionbox, title=Answer]
+    The encryption decryption of each symbol is independent. At each index there is an independent \textbf{substitution cipher}.
+    \vspace{1em}
+
+    Therefore, we can reduce to prove that $\mathcal{M} = \mathcal{C} = \Sigma$, and $\mathcal{K} = S$, \textit{i.e.}, $m$ and $c$ has length 1, and $|\mathcal{K}| = |\Sigma|!$ is perfectly secure.
+    \vspace{1em}
+
+    $P_r[Enc(k, m) = c] = P_r[k(m) = c] = 1/|\Sigma|$ for all $m \in \mathcal{M}$ and all $c \in \mathcal{C}$ and any distribution of $\mathcal{K}$
+    \vspace{1em}
+
+    Therefore it is perfectly secure directly from the \textbf{Definition 2.1 (perfect security)} 
+
+\end{tcolorbox}
 
 
 
+% $\bigconcat_{i=1}^n m_i$
+
+\newpage
+\noindent
+\textbf{2.3}
+\textbf{(A broken one-time pad).} Consider a variant of the one time pad with message space
+$\{0, 1\}^L$ where the key space $\mathcal{K}$ is restricted to all $L$-bit strings with an even number of 1’s. Give an
+efficient adversary whose semantic security advantage is 1
+
+
+\begin{tcolorbox}[solutionbox, title=Answer]
+    The adversary, $\mathcal{A}$, choose $m_0 := 0^L$, and $m_1 := 0^{L-1}1$
+    \vspace{1em}
+
+    If the cipher text $c$ has an even parity it outputs $\hat{b} = 0$ (because it was exactly the parity of the key)
+    \vspace{1em}
+
+    Otherwise, cipher text $c$ has an odd parity, it outputs $\hat{b} = 1$. Because the number of 1's will be the number of 1's in the key, that is even, minus one if the key has a 1 at index $L-1$, or plus one, if the key has a 0 at index $L-1$.
+
+\end{tcolorbox}
