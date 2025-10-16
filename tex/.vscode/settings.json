@@ -1,13 +1,12 @@
 {
+  "latex-workshop.latex.outDir": "/mnt/ram/AppliedCryptographyBonehBookSolutions",
   "latex-workshop.latex.tools": [
     {
       "name": "latexmk-ram",
       "command": "bash",
       "args": [
         "-lc",
-//        "proj=$(basename \"$(dirname \"%DOC%\")\"); out=\"/mnt/ram/$proj\"; mkdir -p \"$out\"; latexmk -synctex=1 -interaction=nonstopmode -file-line-error -pdf -outdir=\"$out\" \"%DOC%\" && cp -f \"$out/%DOCFILE%.pdf\" \"$(dirname \"%DOC%\")/\""
-        "proj=$(basename \"$(dirname \"%DOC%\")\"); out=\"/mnt/ram/$proj\"; mkdir -p \"$out\"; latexmk -synctex=1 -interaction=nonstopmode -file-line-error -pdf -outdir=\"$out\" \"%DOC%\")/\""
-
+        "outdir=%OUTDIR%; mkdir -p \"$outdir\"; latexmk -synctex=1 -interaction=nonstopmode -file-line-error -pdf -outdir=\"$outdir\" \"%DOC%\""
       ]
     }
   ],
@@ -15,4 +14,3 @@
     { "name": "latexmk RAM 🔃", "tools": ["latexmk-ram"] }
   ]
 }
-
