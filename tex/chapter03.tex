@@ -1,0 +1,99 @@
+\chapter{Stream ciphers}
+
+\noindent
+\textbf{3.1}
+\textbf{(Semantic security for random messages).} One can define a notion of semantic security for random messages.
+Here, one modifies Attack Game 2.1 so that instead of the adversary choosing the messages $m_0$ , $m_1$ , the challenger generates $m_0$ , $m_1$ at random from the message space.
+Otherwise, the definition of advantage and security remains unchanged.
+
+\begin{enumerate}[(a)]
+\item Suppose $\mathcal{E}=(\mathsf{E},\mathsf{D})$ is defined over $(\mathcal{K},\mathcal{M},\mathcal{C})$, where $\mathcal{M}=\{0,1\}^L$. Assuming that $\mathcal{E}$ is semantically secure for random messages, show how construct a new cipher $\mathcal{E}'$ that is secure in the ordinary sense. You new cipher should be defined over $(\mathcal{K}',\mathcal{M}',\mathcal{C}')$, where $\mathcal{K}'=\mathcal{K}$ and $\mathcal{M}'=\mathcal{M}$.
+\item Give an example of a cipher that is semantically secure for random messages but that is not semantically secure in the ordinary sense.
+\end{enumerate}
+
+\begin{tcolorbox}[solutionbox, title=Answer: (a)]
+    $E(k, m)$ is secure for a random $m$.
+
+    Make $k = k'$
+    \vspace{1em}
+
+    Definition of $E'$:
+
+    - Generate $r$ from random $\{0,1\}^L$
+
+    - $(r, E'(k', m')) := E(k, m' \oplus r) := E(k, m) = c'$
+    \vspace{1em}
+
+    Notice that $m = m \oplus r$ is random, so $E$ is secure for it.
+
+    Notice that, if the adversary knows $r$ and $c'$, it doesn't help to get $m$, because it is encrypted with $k$.
+    \vspace{1em}
+
+    Definition of $D'$:
+
+    - $m':= (r, D'(k', c')) := D(k, c') \oplus r := D(k, E(k, m)) \oplus r := m \oplus r$
+\end{tcolorbox}
+
+\begin{tcolorbox}[solutionbox, title=Answer: (b)]
+    Consider $E$ such that $c \in \{0,  1\}^{L + 1}$.
+    The function $E$ extends the bitstring $c$ by appending a single $0$ bit at the end of $c$ in the message is exactly $0^L$. Otherwise it appends $1$.
+
+    The chance of the adversary in this game is:
+
+    $1.0 \times 2^{L-1} + \frac{1}{2^L - 1} \times \frac{2^L - 1}{2^L} + negl(L) = 2^{-(L-1)} + negl(L)$
+    
+
+    Notice that $2^{-L}$ is negligible so $2 \times 2^{L-1}$ is too, and therefore is $2^{-(L-1)} + negl(L)$.
+    \vspace{1em}
+
+    Now the only thing the (ordinary sense) adversary needs to do is choose $m_0 := 0^L$ and $m_1 \neq m_0$.
+    And now the chance becomes $1.0$ because if $c$ end with $0$, $m_0$ was chosen, otherwise was $m_1$.
+\end{tcolorbox}
+
+
+
+\newpage
+\noindent
+\textbf{3.2}
+\textbf{(Encryption chain.} Let $\mathcal{E} = (E, D)$ be a cipher defined over $(\mathcal{K},\mathcal{M},\mathcal{C})$ where $\mathcal{K} = \mathcal{M}$.
+Let $\mathcal{E'} = (E', D')$ be a cipher where encryption is defined as $ $. Show that if $\mathcal{E}$ is semantically secure then so is $\mathcal{E}'$.
+
+\begin{tcolorbox}[solutionbox, title=Answer]
+
+\end{tcolorbox}
+
+
+\newpage
+\noindent
+\textbf{3.6}
+\textbf{(Another malleability example).}
+
+Let us give another example illustrating the malleability of stream ciphers.
+Suppose you are told that the stream cipher encryption of the message
+``attack at dawn'' is
+\texttt{6c73d5240a948c86981bc294814d}
+(the plaintext letters are encoded as 8-bit ASCII and
+the given ciphertext is written in hex).
+What would be the stream cipher encryption of the message
+``attack at dusk'' under the same key?
+\begin{tcolorbox}[solutionbox, title=Answer]
+
+In a stream cipher the key string of the same length is the same for the same seed.
+
+So, if $m_0$ and $m_1$ has the same length:
+
+$c_0 = s\oplus m_0$ and $c_1 = s \oplus m_1$, thus
+
+$c_0 \oplus m_0 = s = c_1 \oplus m_1$
+
+$c_1 = c_0 \oplus m_0 \oplus m_1$
+
+$m_0$ and $m_1$ are equal except for the last 3 letters, so we only need to compute these XORs.
+
+$c_1[10] = c_0[10] \oplus m_0[10] \oplus m_1[10] = 94 \oplus `a` \oplus `u` = 94 \oplus 61 \oplus 75$
+
+Do the same for the last 2 letters.
+
+$c_1 =$ \texttt{6c73d5240a948c86981bc2808548}
+
+\end{tcolorbox}
