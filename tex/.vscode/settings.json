@@ -5,7 +5,9 @@
       "command": "bash",
       "args": [
         "-lc",
-        "proj=$(basename \"$(dirname \"%DOC%\")\"); out=\"/mnt/ram/$proj\"; mkdir -p \"$out\"; latexmk -synctex=1 -interaction=nonstopmode -file-line-error -pdf -outdir=\"$out\" \"%DOC%\" && cp -f \"$out/%DOCFILE%.pdf\" \"$(dirname \"%DOC%\")/\""
+//        "proj=$(basename \"$(dirname \"%DOC%\")\"); out=\"/mnt/ram/$proj\"; mkdir -p \"$out\"; latexmk -synctex=1 -interaction=nonstopmode -file-line-error -pdf -outdir=\"$out\" \"%DOC%\" && cp -f \"$out/%DOCFILE%.pdf\" \"$(dirname \"%DOC%\")/\""
+        "proj=$(basename \"$(dirname \"%DOC%\")\"); out=\"/mnt/ram/$proj\"; mkdir -p \"$out\"; latexmk -synctex=1 -interaction=nonstopmode -file-line-error -pdf -outdir=\"$out\" \"%DOC%\")/\""
+
       ]
     }
   ],
