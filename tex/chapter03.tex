@@ -137,3 +137,48 @@ Show that $G(s) := G_1 (G_0 (s))$ mapping $\mathcal{S}$ to $\mathcal{R}_2$ is a 
     So, if $G_1(G_0(s))$ is not secure, then at least one of $G_0$ or $G_1$ is not secure.
 
 \end{tcolorbox}
+
+
+\newpage
+\noindent
+\textbf{3.22}
+\textbf{(Bad seeds).} Show that a secure PRG $G : \{0, 1\}^n \to R$ can become insecure if the seed is not uniformly random in $S$.
+
+\begin{enumerate}[(a)]
+\item Consider the PRG $G' : \{0, 1\}^{n+1} \to R \times \{0, 1\}$ defined as $G'(s_0 \| s_1) = (G(s_0), s_1)$. Show that $G'$ is a secure PRG assuming $G$ is secure.
+\item Show that $G'$ becomes insecure if its random seed $s_0 \| s_1$ is chosen so that its last bit is always $0$.
+\item Construct a secure PRG $G'' : \{0, 1\}^{n+1} \to R \times \{0, 1\}$ that becomes insecure if its seed $s$ is chosen so that the parity of the bits in $s$ is always $0$.
+\end{enumerate}
+
+\begin{tcolorbox}[solutionbox, title=Answer: (a)]
+
+    We are assuming $s_0$ and $s_1$ are uniformly random and independent
+
+    Let's prove by contraposition. \textit{I.e.} if $G'$ is not secure, then $G$ is not secure.
+
+    There is an adversary $\mathcal{A}$ that breaks $G'$. let's wrap it to build an adversary $\mathcal{B}$ that breaks $G$.
+
+    The challenger send either $G(s_0)$ or $s_0$ to $\mathcal{B}$. $\mathcal{B}$ appends a random bit $s_1$ to the input and send it to $\mathcal{A}$.
+
+    $\mathcal{B}$ just outputs whatever $\mathcal{A}$ outputs, and has the same non-negligible advantage to distinguish the two cases.
+
+\end{tcolorbox}
+
+\begin{tcolorbox}[solutionbox, title=Answer: (b)]
+
+    Just build an adversary $\mathcal{A}$ that checks the last bit of the input. If the last bit is $0$, it outputs $0$, otherwise $1$.
+
+    The experiment with $G'$ has probability 0 to output $1$, while the experiment with a random string has probability $1/2$ to output $1$.
+
+    $\Pr[\mathcal{A}(G'(s_0 \| s_1)) = 1] - \Pr[\mathcal{A}(r) = 1]$ = 1/2, which is not negligible.
+
+\end{tcolorbox}
+
+
+\begin{tcolorbox}[solutionbox, title=Answer: (c)]
+
+    $G''(s) = (G(s), \text{parity}(s))$
+
+    So, it is broken essentially with the same adversary of question (b).
+
+\end{tcolorbox}
