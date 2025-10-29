@@ -97,3 +97,43 @@ Do the same for the last 2 letters.
 $c_1 =$ \texttt{6c73d5240a948c86981bc2808548}
 
 \end{tcolorbox}
+
+
+\newpage
+\noindent
+\textbf{3.20}
+\textbf{(Nested PRG construction).} Let $G_0 : \mathcal{S} \to \mathcal{R}_1$ and $G_1 : \mathcal{R}_1 \to \mathcal{R}_2$ be two secure PRGs.
+Show that $G(s) := G_1 (G_0 (s))$ mapping $\mathcal{S}$ to $\mathcal{R}_2$ is a secure PRG.
+
+\begin{tcolorbox}[solutionbox, title=Answer]
+
+    Let's prove by contraposition.
+
+    To simplify, let's define:
+
+    $H_0 = G_1(G_0(s))$, where $s\stackrel{r}{\leftarrow}\mathcal{S}$
+
+    $H_1 = G_1(r_1)$, where $r_1\stackrel{r}{\leftarrow}\mathcal{R}_1$
+
+    $H_2 = r_2$, where $r_2\stackrel{r}{\leftarrow}\mathcal{R}_2$
+
+    If $\mathcal{B}$ breaks $G_1(G_0(r))$, then:
+    \vspace{1em}
+    
+    $|\Pr[\mathcal{B}(H_0) = 1] - \Pr[\mathcal{B}(H_2) = 1]| = \epsilon$, where $\epsilon$ is non-negligible.
+
+    $|\Pr[\mathcal{B}(H_0) = 1] - \Pr[\mathcal{B}(H_1) = 1]| + |\Pr[\mathcal{B}(H_1) = 1] - \Pr[\mathcal{B}(H_2) = 1]| \ge \epsilon$
+
+    So, at least one of the two terms of the sum is $\ge \epsilon/2$.
+    \vspace{1em}
+
+    If $|\Pr[\mathcal{B}(H_0) = 1] - \Pr[\mathcal{B}(H_1) = 1]| \ge \epsilon/2$, then adversay $\mathcal{B}$ can break $G_0$.
+
+    It is easy to see. The challenger sends $G_0(s)$ or $r_1$ to $\mathcal{B}$. $\mathcal{B}$ computes $G_1$ of this input and just distinguishes between the two cases.
+    \vspace{1em}
+
+    If $|\Pr[\mathcal{B}(H_1) = 1] - \Pr[\mathcal{B}(H_2) = 1]| \ge \epsilon/2$, then $G_1$, by definition is not secure.
+
+    So, if $G_1(G_0(s))$ is not secure, then at least one of $G_0$ or $G_1$ is not secure.
+
+\end{tcolorbox}
