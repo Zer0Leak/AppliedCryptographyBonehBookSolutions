@@ -1,17 +1,27 @@
+/*
+DISCLAIMER: This code is provided "as is" without any guarantees or warranty.
+
+THIS CODE IS A NIGHTMARE, JUST MADE IT TO SOLVE THE ASSIGNMENT, DO NOT USE AS
+REFERENCE.
+*/
+
+#include <algorithm>
+#include <cstddef>
 #include <cstdint>
 #include <format>
 #include <iostream>
+#include <ranges>
 #include <set>
 #include <stdexcept>
 #include <string>
+#include <tuple> // structured bindings of tuple-like sometimes need this with some libstdc++
 #include <vector>
 
 // Function to truncate ciphertexts to the size of the target
 std::vector<std::string>
 truncateToTargetSize(const std::vector<std::string> &ciphertexts,
-                     const std::string &target) {
+                     size_t target_size) {
   std::vector<std::string> truncated;
-  size_t target_size = target.size();
 
   for (const auto &cipher : ciphertexts) {
     if (cipher.size() > target_size) {
@@ -43,6 +53,50 @@ std::vector<uint8_t> hexStringToBytes(const std::string &hex) {
 }
 
 int main(int argc, char *argv[]) {
+  std::vector<std::vector<uint8_t>> supposed_keys(11, std::vector<uint8_t>());
+  supposed_keys[0] = {0x66, 0x39, 0x6e, 0x89, 0xc9, 0xdb, 0xd8, 0xcc, 0x98,
+                      0x74, 0x35, 0x2a, 0xcd, 0x63, 0x95, 0x10, 0x2e, 0xaf,
+                      0xce, 0x78, 0xaa, 0x7f, 0xed, 0x28, 0x00, 0x00, 0x00,
+                      0x00, 0x8d, 0x29, 0xc5, 0x0b, 0x69, 0xb0, 0x33, 0x9a,
+                      0x19, 0xf8, 0xaa, 0x40, 0x1a, 0x9c, 0x6d, 0x70, 0x8f,
+                      0x80, 0xc0, 0x66, 0xc7, 0x00, 0x00, 0x00, 0x12, 0x31,
+                      0x48, 0xcd, 0xd8, 0xe8, 0x02, 0xd0, 0x5b, 0xa9, 0x87,
+                      0x77, 0x33, 0x5d, 0xae, 0xfc, 0xec, 0xd5, 0x9c, 0x43,
+                      0x3a, 0x6b, 0x26, 0x8b, 0x60, 0xbf, 0x4e, 0xf0, 0x3c,
+                      0x9a, 0x61},
+  supposed_keys[1] = {0x66, 0x39, 0x6e, 0x89, 0xc9, 0xdb, 0xd8, 0xcc, 0x98,
+                      0x74, 0x35, 0x2a, 0xcd, 0x63, 0x95, 0x10, 0x2e, 0xaf,
+                      0xce, 0x78, 0xaa, 0x7f, 0xed, 0x28, 0xa0, 0x7f, 0x6b,
+                      0xc9, 0x8d, 0x29, 0xc5, 0x0b, 0x69, 0xb0, 0x33, 0x9a,
+                      0x19, 0xf8, 0xaa, 0x40, 0x1a, 0x9c, 0x6d, 0x70, 0x8f,
+                      0x80, 0xc0, 0x66, 0xc7, 0x63, 0xfe, 0xf0, 0x12, 0x31,
+                      0x48, 0xcd, 0xd8, 0xe8, 0x02, 0xd0, 0x5b, 0xa9, 0x87,
+                      0x77, 0x33, 0x5d, 0xae, 0xfc, 0xec, 0xd5, 0x9c, 0x43,
+                      0x3a, 0x6b, 0x26, 0x8b, 0x60, 0xbf, 0x4e, 0xf0, 0x00,
+                      0x00, 0x00},
+  supposed_keys[10] = {
+      0x66, 0x39, 0x6e, 0x89, 0xc9, 0xdb, 0xd8, 0xcc, 0x98, 0x74, 0x35, 0x2a,
+      0xcd, 0x63, 0x95, 0x10, 0x2e, 0xaf, 0xce, 0x78, 0xaa, 0x7f, 0xed, 0x28,
+      0xa0, 0x7f, 0x6b, 0xc9, 0x8d, 0x29, 0xc5, 0x0b, 0x69, 0xb0, 0x33, 0x9a,
+      0x19, 0xf8, 0xaa, 0x40, 0x1a, 0x9c, 0x6d, 0x70, 0x8f, 0x80, 0xc0, 0x66,
+      0xc7, 0x63, 0xfe, 0xf0, 0x12, 0x31, 0x48, 0xcd, 0xd8, 0xe8, 0x02, 0xd0,
+      0x5b, 0xa9, 0x87, 0x77, 0x33, 0x5d, 0xae, 0xfc, 0xec, 0xd5, 0x9c, 0x43,
+      0x3a, 0x6b, 0x26, 0x8b, 0x60, 0xbf, 0x4e, 0xf0, 0x3c, 0x9a, 0x61};
+
+  std::vector<uint8_t> mixed_key(supposed_keys[0].size(), 0x0);
+  // Mixing strategy: For each position, if mixed_key is not zero, overwrite it
+  // with the value from the current supposed_key. This attempts to combine
+  // known key bytes from multiple sources, preferring non-zero values.
+  for (const auto &supposed_key : supposed_keys) {
+    for (size_t i = 0; i < supposed_key.size(); i++) {
+      if (mixed_key[i] == 0x00) {
+        mixed_key[i] = supposed_key[i];
+      }
+    }
+  }
+  mixed_key =
+      supposed_keys[10]; // Use the key from the target ciphertext directly
+
   std::vector<std::string> ciphertexts = {
       // ciphertext #1
       "315c4eeaa8b5f8aaf9174145bf43e1784b8fa00dc71d885a804e5ee9fa40b16349c146fb"
@@ -114,7 +168,20 @@ int main(int argc, char *argv[]) {
 
   // Target ciphertext is at index 10 (11th element)
   const size_t target_index = 10;
+  const size_t real_target_index = 10;
+  // clang-format off
+  std::vector<std::string> expected_results(11, "");
+  expected_results[0]  =
+      "We can factor the number____with quantum computer___We can also factor the number 1";
+  expected_results[1]  =
+      "Euler would probably enjoy that now his theorem becomes a corner stone of crypto___";
+  expected_results[10] =
+      "The secret message is: When using a stream cipher, never use the key more than once";
+  // clang-format on
+  std::string expected_result = expected_results[real_target_index];
+
   const std::string &target_ciphertext = ciphertexts[target_index];
+  const std::string &real_target_ciphertext = ciphertexts[real_target_index];
 
   std::cout << "Loaded " << ciphertexts.size() << " ciphertexts for analysis"
             << std::endl;
@@ -130,8 +197,11 @@ int main(int argc, char *argv[]) {
   }
 
   // Truncate all analysis ciphertexts to match target size
-  std::vector<std::string> truncated_ciphertexts =
-      truncateToTargetSize(analysis_ciphertexts, target_ciphertext);
+  std::vector<std::string> truncated_ciphertexts = truncateToTargetSize(
+      analysis_ciphertexts,
+      std::min(real_target_ciphertext.size(), target_ciphertext.size()));
+  std::string truncated_target_ciphertext = target_ciphertext.substr(
+      0, std::min(real_target_ciphertext.size(), target_ciphertext.size()));
 
   std::cout << "Truncated ciphertexts to target length:" << std::endl;
   for (size_t i = 0; i < truncated_ciphertexts.size(); ++i) {
@@ -151,23 +221,24 @@ int main(int argc, char *argv[]) {
   }
 
   // Convert target ciphertext to bytes
-  std::vector<uint8_t> target_bytes = hexStringToBytes(target_ciphertext);
+  std::vector<uint8_t> target_bytes =
+      hexStringToBytes(truncated_target_ciphertext);
   std::cout << "Target ciphertext as bytes: " << target_bytes.size() << " bytes"
             << std::endl;
 
   // XOR each ciphertext with target and process results
   std::cout << "\nXORing ciphertexts with target:" << std::endl;
 
-  // std::string result(target_bytes.size(), '_');
-  std::string result = "The "
-                       "secret message is_______using___stream cipher__never "
-                       "use the key more than once";
+  std::string result(target_bytes.size(), '_');
 
   std::vector<std::string> alternative_results;
   std::vector<std::set<std::uint8_t>> possible_chars(target_bytes.size(),
                                                      std::set<std::uint8_t>());
 
   for (size_t i = 0; i < truncated_ciphertexts.size(); ++i) {
+    if (i == target_index) {
+      continue; // Skip the target itself
+    }
     std::vector<uint8_t> cipher_bytes =
         hexStringToBytes(truncated_ciphertexts[i]);
     std::string alternative_result(target_bytes.size(), '_');
@@ -206,9 +277,102 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  std::cout << result << std::endl;
+  // Convert real_result to bytes using modern C++23 ranges, replacing '_' with
+  // 0x0
+  auto real_result_bytes =
+      expected_result | std::views::transform([](char c) -> uint8_t {
+        return c == '_' ? uint8_t{0x0} : static_cast<uint8_t>(c);
+      }) |
+      std::ranges::to<std::vector>();
+
+  // Convert real target ciphertext to bytes
+  std::vector<uint8_t> real_target_bytes =
+      hexStringToBytes(real_target_ciphertext);
+
+  // Calculate the key by XORing known plaintext with target ciphertext
+  // Where plaintext is unknown (0x00), set key to 0x00
+  auto calculated_key =
+      std::views::zip(real_result_bytes, target_bytes) |
+      std::views::transform([](const auto &pair) -> uint8_t {
+        auto [plain, cipher] = pair;
+        return plain == 0 ? 0 : static_cast<uint8_t>(plain ^ cipher);
+      }) |
+      std::ranges::to<std::vector>();
+
+  // Decrypt target ciphertext using calculated key where key is not 0
+  // Where key is 0x0, use the result from XOR analysis
+  auto decrypted_result =
+      std::views::zip(target_bytes, calculated_key, result) |
+      std::views::transform([](const auto &triple) -> char {
+        auto [cipher, key, result_char] = triple;
+        if (key == 0) {
+          return result_char; // Use XOR analysis result when key is unknown
+        }
+        uint8_t decrypted_byte = cipher ^ key;
+        // Return printable character or '_' if not printable
+        return (decrypted_byte >= 32 && decrypted_byte <= 126)
+                   ? static_cast<char>(decrypted_byte)
+                   : '_';
+      }) |
+      std::ranges::to<std::string>();
+
+  // Print the calculated key in copy-paste friendly formats
+  std::cout << "\n=== CALCULATED KEY (Copy-Paste Ready) ===" << std::endl;
+
+  // As C++ hex array initializer
+  std::cout << "// C++ array initialization:" << std::endl;
+  std::cout << "std::vector<uint8_t> key = {";
+  for (size_t i = 0; i < calculated_key.size(); ++i) {
+    if (i % 16 == 0)
+      std::cout << "\n    ";
+    std::cout << std::format("0x{:02x}", calculated_key[i]);
+    if (i < calculated_key.size() - 1)
+      std::cout << ", ";
+  }
+  std::cout << "\n};" << std::endl;
+
+  // Decrypt target using the mixed_key
+  auto target_with_mixed_key =
+      std::views::zip(real_target_bytes, mixed_key) |
+      std::views::transform([](const auto &pair) -> char {
+        auto [cipher_byte, key_byte] = pair;
+        uint8_t decrypted_byte = cipher_byte ^ key_byte;
+        // Return printable character or '_' if not printable
+        return (decrypted_byte >= 32 && decrypted_byte <= 126)
+                   ? static_cast<char>(decrypted_byte)
+                   : '_';
+      }) |
+      std::ranges::to<std::string>();
+
+  std::cout << "\n=== RESULTS ===" << std::endl;
+  std::cout << "Expected result:       " << expected_result << std::endl;
+  std::cout << "Calculated decryption: " << decrypted_result << std::endl;
+  std::cout << "Target with mixed key: " << target_with_mixed_key << std::endl;
+
   for (const auto &alt_res : alternative_results) {
     std::cout << alt_res << std::endl;
+  }
+
+  // Decrypt all ciphertexts using mixed_key
+  std::cout << "\n=== ALL CIPHERTEXTS DECRYPTED WITH MIXED KEY ==="
+            << std::endl;
+  for (size_t i = 0; i < ciphertexts.size(); ++i) {
+    std::vector<uint8_t> cipher_bytes = hexStringToBytes(ciphertexts[i]);
+
+    auto decrypted_cipher =
+        std::views::zip(cipher_bytes, mixed_key) |
+        std::views::transform([](const auto &pair) -> char {
+          auto [cipher_byte, key_byte] = pair;
+          uint8_t decrypted_byte = cipher_byte ^ key_byte;
+          // Return printable character or '_' if not printable
+          return (decrypted_byte >= 32 && decrypted_byte <= 126)
+                     ? static_cast<char>(decrypted_byte)
+                     : '_';
+        }) |
+        std::ranges::to<std::string>();
+
+    std::cout << "Ciphertext " << std::format("{:>2}", i + 1) << ": "
+              << decrypted_cipher << std::endl;
   }
 
   return 0;
