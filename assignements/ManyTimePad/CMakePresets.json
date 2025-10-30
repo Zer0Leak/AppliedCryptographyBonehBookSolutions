@@ -1,0 +1,50 @@
+{
+  "version": 5,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 22,
+    "patch": 0
+  },
+
+  "configurePresets": [
+    {
+      "name": "ram-debug",
+      "displayName": "Debug (RAM /mnt/ram/ManyTimePad/build/Debug)",
+      "generator": "Ninja",
+      "binaryDir": "/mnt/ram/ManyTimePad/build/Debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_CXX_COMPILER": "clang++",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "ram-release",
+      "displayName": "Release (RAM /mnt/ram/ManyTimePad/build/Release)",
+      "generator": "Ninja",
+      "binaryDir": "/mnt/ram/ManyTimePad/build/Release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_CXX_COMPILER": "clang++",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    }
+  ],
+
+  "buildPresets": [
+    {
+      "name": "build-ram-debug",
+      "configurePreset": "ram-debug",
+      "targets": ["many_time_pad"],
+      "jobs": 0
+    },
+    {
+      "name": "build-ram-release",
+      "configurePreset": "ram-release",
+      "targets": ["many_time_pad"],
+      "jobs": 0
+    }
+  ]
+}
