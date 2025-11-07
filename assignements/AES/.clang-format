@@ -1,0 +1,9 @@
+BasedOnStyle: LLVM
+IndentWidth: 4
+TabWidth: 4
+ColumnLimit: 120
+UseTab: Never
+ContinuationIndentWidth: 4
+# optional:
+# ColumnLimit: 0         # disable line wrapping
+# NamespaceIndentation: All

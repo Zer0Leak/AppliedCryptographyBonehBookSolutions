@@ -28,7 +28,7 @@ option(ENABLE_ARRAYFIRE       "Use ArrayFire (CPU/unified)"           OFF)
 option(ENABLE_DLIB            "Use dlib via pkg-config"               OFF)
 option(ENABLE_OPENMP          "Enable OpenMP for C++"                 OFF)
 option(ENABLE_FMT             "Use fmt formatting library"            OFF)
-option(ENABLE_CRYPTOPP        "Use Crypto++ cryptographic library"    OFF)
+option(ENABLE_CRYPTOPP        "Use Crypto++ cryptographic library"    ON)
 
 # ===== Target =====
 add_executable(${TARGET_NAME}
