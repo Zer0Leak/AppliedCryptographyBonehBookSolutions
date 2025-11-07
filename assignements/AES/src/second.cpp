@@ -1,0 +1,4 @@
+
+void second(void) {
+    return;
+}
