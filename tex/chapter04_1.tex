@@ -1,0 +1,116 @@
+\chapter{Block ciphers}
+
+\noindent
+\textbf{Problem 7(a)}
+\textbf{\url{https://crypto.stanford.edu/~dabo/courses/cs255_winter25/hw_and_proj/hw2.pdf}}
+\vspace{1em}
+
+\begin{tcolorbox}[solutionbox, title=Answer]
+
+    $2D((k_1, k_2), c) = D(k_2, D(k_1, c))$
+    \vspace{1em}
+
+    Because of \textbf{meet in the middle attack}, this construction is not secure.
+    \vspace{0em}
+    
+    Given a known pair $(m, c)$, the adversary can build a hash table of $2^{128}$ entries of $E(k'_1, m)$ for all possible $k'_1$ values. $E(k'_1, c)$ is the hash table key, while $k'_1$ is the value. It takes time $O(|K|)$ to build.
+    \vspace{1em}
+    
+    Then, for each possible $k'_2$, it can compute $D(k'_2, c)$ and check if it matches any entry in the table. If it is present in table, then this pair $(k'_1, k'_2)$ is a candidate key pair.
+    It is a false positive with probability $1 / 2^{128}$. And we can check it by just choosing another random message and checking if it encrypts to the expected ciphertext.
+    \vspace{1em}
+
+    This brings down the security from $2^{256}$ to $2 \cdot 2^{128} = 2^{129}$.
+
+\end{tcolorbox}
+
+\newpage
+\noindent
+\textbf{4.5}
+\textbf{(Two-key Triple-DES).} Consider the following variant of the $3\mathcal{E}$ construction that uses
+only two keys: for a block cipher $(E, D)$ with key space $\mathcal{K}$ define $3\mathcal{E}'$ as $E((k_1 , k_2 ), m) :=
+E(k_1 , E(k_2 , E(k_1 , m)))$. Show that this block cipher can be defeated by a meet in the middle
+attack using $O(|\mathcal{K}|)$ evaluation of $E$ and $D$ and using $O(|\mathcal{K}|)$ encryption queries to the block cipher
+challenger. Further attacks on this method are discussed in [112, 105].
+
+
+\begin{tcolorbox}[solutionbox, title=Answer]
+
+    First, let's fix a $E_{k1}(m)$ we want to reach. Let's choose $0^{64}$.
+    \vspace{1em}
+
+    Now, let's compute a table, for all candidates $k_2$, and name it $k'_2$. It will be a hash table, mapping $E(k'_2, 0^{64})$ to $k'_2$. This takes time $O(|\mathcal{K}|)$.
+    \vspace{0em}
+
+    Now, let's find messages of interest for our attack. For all possible $k_1$, named $k'_1$, we will compute $m_i = D(k'_1, 0^{64})$. This takes time $O(|\mathcal{K}|)$. Store this pair $(m_i, {k'_1}_i)$ in a list.
+    This gives us a list of approximatelly distinguish $|\mathcal{K}|$ messages.
+    \vspace{1em}
+
+    That's Because the probability of $k'_1 \neq k'_2$ satisfying $D(k'_1, 0^{64}) = D(k'_2, 0^{64})$ is $1 / 2^{64}$. So, the expected number of collisons is $= \binom{K}{2}\cdot\frac{1}{B} = \frac{2^{56}(2^{56}-1)}{2}\cdot\frac{1}{2^{64}} \approx \frac{2^{112}}{2^{65}} = 2^{47}$.
+    So, we expect the we will have $2^{56} - 2^{47} \approx 0.99805 \cdot 2^{56}$ distinguish messages.
+    \vspace{1em}
+    
+
+    Let's ask the challenger to encrypt them. This will give us $c_i := E(k_1, E(k_2, E(k_1, m_i)))$. This also takes time $O(|\mathcal{K}|)$. Add $c_i$ to the pair $(m_i, k'_i)$, making it a tuple $(m_i, c_i, {k'_1}_i)$. Remember that ${k'_1}_i$ is just a candidate for real $k_1$ used to generate $c_i$.
+    \vspace{1em}
+
+    Now, for $(m_i, c_i, {k'_1}_i)$ tuple, compute $D({k'_1}_i, c_i)$, and check if the result is present in the initial hash table (takes $O(1)$ each query). \textit{I.e.} We are checking if there exists ${k'_2}_i$ such that $E({k'_2}_i, 0^{64}) = D({k'_1}_i, c_i)$.
+    \vspace{1em}
+    
+    If so, we have found a candidate pair $({k'_1}_i, {k'_2}_i)$. This is the \textit{meet} point. We add it to a list of candidates.
+    \vspace{1em}
+
+    Notice this pair may be a false positive. Actually, the probability $({k'_1}_i, {k'_2}_i)$ be false positive is $(2^{56} - 1) / 2^{64} \approx 2^{-8}$ ($-1$ is the right one), i.e. the number of entries in the hash table divided by the size of the block space resulting from $D({k'_1}_i, c_i)$. Since we tried $2^{56}$ tuples, we expect to have $2^{56} \cdot 2^{-8} = 2^{48}$ false positive pairs and one positive.
+    \vspace{1em}
+
+    Finally, we will verify each candidate in our list by encrypting a new random message and checking if the result is correct. This takes time $2^{48} + 1 = O(|\mathcal{K}|)$ in total.
+
+    The chance a false positive passes this test is $1 / 2^{64}$, so the expected number of false positives passing this test is $2^{48} / 2^{64} = 2^{-16}$. If more than one candidate passes the test, we can repeat the test with a new random message until only one candidate remains. Notice that repeating test just a second time $2^{48} / 2^{128} = 2^{-80}$.
+
+\end{tcolorbox}
+
+\newpage
+\noindent
+\textbf{4.9}
+\textbf{(Strongly secure block ciphers).} In Section 4.1.3 we sketched out the notion of a strongly secure block cipher.
+
+\begin{enumerate}[(a)]
+\item Write out the complete definition of a strongly secure block cipher as a game between a challenger and an adversary.
+\item Consider the following cipher $\mathcal{E}' = (E', D')$ built from a block cipher $(E, D)$ defined over $(\mathcal{K}, \{0, 1\}^n )$:
+\end{enumerate}
+
+$E'(k, m) := D(k, t \oplus E(k, m) )$ and $D'(k, c) := D(k, t \oplus E(k, c) )$
+
+where $t \in \{0, 1\}^n$ is a fixed constant. For what values of $t$ is this cipher $\mathcal{E}'$ semantically
+secure? Prove semantic security assuming the underlying block cipher is strongly secure
+\vspace{1em}
+
+\begin{tcolorbox}[solutionbox, title=Answer: (a)]
+
+    This is exactly same as the definition of secure block cipher, \textit{i.e.} \textbf{Definition 4.1}, but now the adversary has access to both encryption and decryption oracles. \textit{I.e.} the adversary can query the challenger with both $(m_i)$ and $(c_j)$, receiving back $E(k, m_i)$ and $D(k, c_j)$ respectively, for any $m_i, c_j \in \{0, 1\}^n$ of its choice. Also notice that $D$ is the inverse of $E$ in both Experiments.
+
+\end{tcolorbox}
+\vspace{1em}
+
+\begin{tcolorbox}[solutionbox, title=Answer: (b)]
+
+    It is \textbf{not} semantically secure for any value of $t$.
+    \vspace{1em}
+
+    Let's use the attach game 4.1.
+    \vspace{1em}
+
+    The adversary just need to send one input block $m$ theb it gets back $c = f(k, m)$. Now, it sends $c$. If it gets back $m$ outputs $\hat{b} = 0$, otherwise $\hat{b} = 1$. Notice that in Experiment 0, $k\stackrel{r}{\leftarrow}\mathcal{K}$ and $f \leftarrow E'(k, \cdot)$. While in Experiment 1, $f\stackrel{r}{\leftarrow}Perms[\mathcal{X}]$
+    \vspace{1em}
+
+    In Experiment 0, $\Pr[\hat{b} = 1] = 1$, in Experiment 1, $\Pr[\hat{b} = 1] = 1/2^n$.
+    \vspace{1em}
+
+    Let's prove the Experiment 0 case:
+    \vspace{1em}
+
+    $E'_k(c) = E'_k \circ E'_k(m) = E'_k \circ D_k (t \oplus E_k(m)) = D_k (t \oplus E_k \circ D_k (t \oplus E_k(m)))$
+
+    $= D_k (t \oplus t \oplus E_k(m)) = D_k (E_k(m)) = m$
+
+\end{tcolorbox}

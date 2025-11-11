@@ -11,6 +11,15 @@
     }
   ],
   "latex-workshop.latex.recipes": [
-    { "name": "latexmk RAM 🔃", "tools": ["latexmk-ram"] }
-  ]
+    {
+      "name": "latexmk RAM 🔃",
+      "tools": [
+        "latexmk-ram"
+      ]
+    }
+  ],
+  "[latex]": {
+    "editor.wordWrap": "on", // wrap by window width
+    "editor.wrappingIndent": "same" // keep indent level
+  }
 }

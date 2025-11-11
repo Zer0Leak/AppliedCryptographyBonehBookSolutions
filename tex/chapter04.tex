@@ -1,0 +1,88 @@
+\chapter{Block ciphers}
+
+\noindent
+\textbf{4.1}
+\textbf{(Exercising the definition of a secure PRF).} Let F be a secure PRF defined over $(\mathcal{K}, \mathcal{X} , \mathcal{Y})$, where $\mathcal{K} = \mathcal{X} = \mathcal{Y} = \{0, 1\}^n$.
+
+\begin{enumerate}[(a)]
+\item Show that $F_1 (k, x) = F (k, x) || 0$ is not a secure PRF.
+\item Show that $F_2 (k, (x, y)) := F (k, x) \oplus F (k, y)$ is insecure.
+\item Prove that $F_3 (k, x) := F (k, x) \oplus x$ is a secure PRF.
+\end{enumerate}
+
+
+\begin{tcolorbox}[solutionbox, title=Answer: (a)]
+
+Let's use the attach game 4.2
+
+$PRFadv[\mathcal{A}, \mathcal{F}] := | \Pr[W_0] - \Pr[W_1] |$
+
+The Adversary just need to send one x input block.
+
+It outputs 0 when the last of y is 0, otherwise 1.
+
+In Experiment 0, $\Pr[\hat{b} = 1] = 1$, in Experiment 1, $\Pr[\hat{b} = 1] = 1/2$.
+
+So, $PRFadv[\mathcal{A}, \mathcal{F}] = |1 - 1/2| = 1/2$, which is non-negligible.
+
+\end{tcolorbox}
+
+\begin{tcolorbox}[solutionbox, title=Answer: (b)]
+
+Let's use the attach game 4.2
+
+$PRFadv[\mathcal{A}, \mathcal{F}] := | \Pr[W_0] - \Pr[W_1] |$
+
+The Adversary just need to send on input blocks $(x,y)$ with any $x = y$.
+
+The challenger gives back $c$.
+
+If the $c = 0^n$, the adversary outputs 0, otherwise 1.
+
+In Experiment 0, $\Pr[\hat{b} = 1] = 1$, in Experiment 1, $\Pr[\hat{b} = 1] = 1/2^n$.
+
+So, $PRFadv[\mathcal{A}, \mathcal{F}] = |1 - 1/2^n|$, which is non-negligible, ranging from $1/2$ to almost $1$ for large $n$.
+
+\end{tcolorbox}
+
+\begin{tcolorbox}[solutionbox, title=Answer: (c)]
+
+
+Let's prove by contraposition. \textit{I.e.} if $F_3$ is not secure, then $F$ is not secure.
+
+There is an adversary $\mathcal{A}$ that breaks $F_3$. let's wrap it to build an adversary $\mathcal{B}$ that breaks $F$.
+
+$\mathcal{B}$ computes $x\stackrel{r}{\leftarrow}\mathcal{R}$ and send $x$ to the challenger, and receives $c$.
+
+Then, it computes $c \oplus x$ and send the result to $\mathcal{A}$. Notice that $x$ is truly random so, only if $c$ is not truly random, $c \oplus x$ is not truly random.
+
+Finally, $\mathcal{B}$ just outputs whatever $\mathcal{A}$ outputs, and has the same non-negligible advantage to distinguish the two cases.
+
+$\mathcal{A}$ can distinguish between the two cases with non-negligible advantage.
+
+Since $\mathcal{B}$ just forwards the input and output of $\mathcal{A}$, it has the same non-negligible advantage to distinguish the two cases.
+
+\end{tcolorbox}
+
+
+\newpage
+\noindent
+\textbf{4.4}
+\textbf{(Truncating PRFs).} Let $F$ be a PRF whose range is $\mathcal{Y} = \{0, 1\}^n$. For some $\ell < n$ consider
+the PRF $F'$ with a range $\mathcal{Y}' = \{0, 1\}^\ell$ defined as: $F'(k, x) := F (k, x)[0 \ldots \ell - 1]$. That is, we
+truncate the output of $F(k, x)$ to the first $\ell$ bits. Show that if $F$ is a secure PRF then so is $F'$
+
+
+\begin{tcolorbox}[solutionbox, title=Answer]
+
+Let's prove by contraposition. \textit{I.e.} if $F'$ is not secure, then $F$ is not secure.
+
+There is an adversary $\mathcal{A}$ that breaks $F'$. let's wrap it to build an adversary $\mathcal{B}$ that breaks $F$.
+
+The adversary $\mathcal{B}$ send enough inputs to the challenger and receives back the corresponding outputs. When it receives two outputs where the first $\ell$ bits are different it can stop quering and use this pair to challenge $\mathcal{A}$.
+
+$\mathcal{B}$ truncates the outputs to the first $\ell$ bits and send them to $\mathcal{A}$.
+
+Finally, $\mathcal{B}$ just outputs whatever $\mathcal{A}$ outputs, and has the same non-negligible advantage to distinguish the two cases.
+
+\end{tcolorbox}
