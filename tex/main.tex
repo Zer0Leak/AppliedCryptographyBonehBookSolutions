@@ -16,13 +16,15 @@
 \usepackage{amssymb}
 \usepackage[most]{tcolorbox}
 \usepackage{enumerate}
+\tcbuselibrary{breakable,skins} 
 
 \tcbset{solutionbox/.style={
 	fonttitle=\bfseries,
 	coltitle=black,
 	colback=white,
 	colframe=gray!50,
-	boxrule=0.8pt
+	boxrule=0.8pt,
+	breakable
 }}
 
 
@@ -77,6 +79,7 @@
 \setcounter{chapter}{1}
 \include{./chapter02}
 \include{./chapter03}
+\include{./chapter04}
 
 \backmatter
 % bibliography, glossary and index would go here.
