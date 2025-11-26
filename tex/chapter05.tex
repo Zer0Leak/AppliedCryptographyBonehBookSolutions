@@ -1,0 +1,79 @@
+\chapter{Chosen Plaintext Attack}
+
+\noindent
+\textbf{Problem 5}
+\textbf{\url{https://crypto.stanford.edu/~dabo/courses/cs255_finals/worksheet.pdf}}
+\vspace{1em}
+
+\begin{tcolorbox}[solutionbox, title=Answer]
+
+The correct is \textbf{B)} $F_1$, $F_3$, but not $F_2$
+\vspace{1em}
+
+$F_1$ is secure because: $F$ is secure, so the adversary cannot distinguish $F$ from truly randon function even send to the challenge $X$ and its complement $~X$, so it can't distinguish sending $~X$ and $X$ in \textbf{attack game 4.2}.
+\vspace{1em}
+
+For $F_2$, the advantage is $|1 - 1/2| = 1/2$
+\vspace{1em}
+
+For $F_3$, if $x \neq 0^n$ it becomes $F$ that seems truly random, if $x = 0^n$ then it becomes $k_2$ wich is truly random. So it seems truly random.
+
+\end{tcolorbox}
+
+\clearpage
+\noindent
+\textbf{5.1}
+\textbf{(Double encryption).} Let $\mathcal{E} = (E, D)$ be a cipher. Consider the cipher $\mathcal{E}_2 = (E_2 , D_2)$, where $E_2(k, m) = E(k, E(k, m))$. One would expect that if encrypting a message once with $E$ is secure then encrypting it twice as in $E_2$ should be no less secure. However, that is not always true.
+
+\begin{enumerate}[(a)]
+\item Show that there is a semantically secure cipher E such that E2 is not semantically secure.
+\item Prove that for every CPA secure ciphers $\mathcal{E}$, the cipher $\mathcal{E}_2$ is also CPA secure. That is, show that for every CPA adversary $\mathcal{A}$ attacking $\mathcal{E}_2$ there is a CPA adversary $\mathcal{B}$ attacking $\mathcal{E}$ with about the same advantage and running time.
+\end{enumerate}
+
+\begin{tcolorbox}[solutionbox, title=Answer(a)]
+OTP twice is identity.
+\end{tcolorbox}
+
+\begin{tcolorbox}[solutionbox, title=Answer(b)]
+
+In attack game 5.2 and defintion 5.2, the adversary can choose Plaintext adaptativelly.
+
+Let's show by contrapositive. And wrap and adversary $\mathcal{A}$ into an adversary $\mathcal{B}$.
+
+$\mathcal{B}$ send to $\mathcal{A}$ the pair of messages $({m_0}_i,{m_1}_i)$. For each ${m_0}_i$, $\mathcal{B}$ send to its Challenger the pair $({m_0}_i,{m_0}_i)$ and receives back ${c'_0}_i$. It does the same for ${m_1}_i$ and gets back ${c'_1}_i$. Now, $\mathcal{B}$ sends to the challenger the pair $({c'_0}_i,{c'_1}_i)$ and gets back a double encrypted message ${c_b}_i$. Then $\mathcal{B}$ sends back ${c_b}_i$ to $\mathcal{A}$, after $\mathcal{A}$ makes all queries to $\mathcal{B}$, and finally answers back $b$, $\mathcal{B}$ just forward that to its Challenger with the same advantage. Notice that $\mathcal{B}$ queries its challenger twice more, but it is asymptotically the same, even tough, it is expected that $E(E(.)$ takes twice more time then $E$ bringing back to the same execution time, except by the cost of API call.
+
+\end{tcolorbox}
+
+
+
+
+\clearpage
+\noindent
+\textbf{5.6}
+\textbf{(CPA security from a block cipher).} Let $\mathcal{E} = (E, D)$ be a block cipher defined over $(K, M \times R)$. Consider the cipher $\mathcal{E}' = (E', D')$, where:
+
+$E'(k, m) := \{r \leftarrow R, c \leftarrow E(k, (m, r)), output\,c\}$
+
+$D'(k, c) := \{(m, r') \leftarrow D(k, c), output\,m\}$
+
+This cipher is defined over $(K, M, M \times R)$. Show that if $\mathcal{E}$ is a secure block cipher, and $1/|R|$ is negligible, then $\mathcal{E}'$ is CPA secure
+
+\begin{tcolorbox}[solutionbox, title=Answer]
+
+Let's prove by contrapositive. And supppose $\mathcal{E}'$ is not CPA secure.
+\vspace{1em}
+
+The challenger is playing \textbf{Attack Game 4.1} against the adversary $\mathcal{B}$. The adversary $\mathcal{B}$ wraps adversary $\mathcal{A}$ and plays \textbf{Attack game 5.2}.
+\vspace{1em}
+
+To setup the experiment, the Challenger computes $b \leftarrow R$ to choose BC or random Perm. $\mathcal{B}$ computes $b' \leftarrow R$ to choose Exp 0 or 1.
+\vspace{1em}
+
+$\mathcal{A}$ send pairs $({m_0}_i, {m_1}_i)$ to $\mathcal{B}$. For each pair, $\mathcal{B}$ computes $r \leftarrow R$ and send $({m_{b'}}_i, r)$, to its Challeger that computes $c \leftarrow E(k, ({m_{b'}}_i,r))$ if $b=0$, otherwise $c \leftarrow Perms[({m_{b'}}_i,r)]$. then answers with ${c_b}_i$. Then $\mathcal{B}$ sends ${c_b}_i$ back to $\mathcal{A}$. Notice that $1/|\mathcal{R}|$ is negligible, so if $i$ is poly-bounded the chance of get the same $r$ is negligible. If the Challenger is in experiment $b=1$, ${c_b}_i$ is truly random, and $\mathcal{A}$ has no chance better than $1/2$ to tell in which experiment $b'$ is $\mathcal{B}$. Therefore $\mathcal{B}$ has at most $1/2$ chance to tell in wich experiment $b$ is the Challenger. If chanllenger is in experiment $b=0$, then what reachs back $\mathcal{A}$ is actually $c \leftarrow E(k, ({m_{b'}}_i,r))$, but, in this case, $\mathcal{A}$ has non-negligible ($\epsilon + \frac{1}{2}$) chance to answer back $b'' = b'$, in which case, $\mathcal{B}$ answers back to its Challenger with $b = 0$ with the same probability. Making the final $CPAadv[\mathcal{A},\mathcal{E}] := |\Pr[W_0] - Pr[W_1]| = |\epsilon + \frac{1}{2} - 1/2| = \epsilon$, which is non-negligible.
+\vspace{1em}
+
+Observation: if $1/|\mathcal{R}|$ was non-negligible, it would lead to a non-negligible chance of $\mathcal{A}$ to say $b'' = b'$ even when the Challeger is playing attack game $b = 1$. Giving no final advantage for $\mathcal{B}$ to differentiate what game its Challenger is playing.
+
+\vspace{1em}
+
+\end{tcolorbox}
