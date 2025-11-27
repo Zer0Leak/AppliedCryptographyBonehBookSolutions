@@ -27,7 +27,8 @@
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
     "clangd.arguments": [
         "--compile-commands-dir=/mnt/ram/ChunkTag/build/Active",
-        "--query-driver=/usr/bin/clang++,/usr/bin/clang-*"
+        "--query-driver=/usr/bin/clang++,/usr/bin/clang-*",
+        "-std=c++23"
     ],
 
     // Ensure fallback compiler & IntelliSense mode (mainly affects debugging, not clangd)
@@ -73,5 +74,5 @@
 
     "debug.inlineValues": "on",
     "C_Cpp.debugger.useHexFormatting": true,
-    "lldb.displayFormat": "hex"
+    // "lldb.displayFormat": "hex"
 }

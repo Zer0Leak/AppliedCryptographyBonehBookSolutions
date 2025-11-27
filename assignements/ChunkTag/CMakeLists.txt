@@ -28,6 +28,7 @@ option(ENABLE_ARRAYFIRE       "Use ArrayFire (CPU/unified)"           OFF)
 option(ENABLE_DLIB            "Use dlib via pkg-config"               OFF)
 option(ENABLE_OPENMP          "Enable OpenMP for C++"                 OFF)
 option(ENABLE_FMT             "Use fmt formatting library"            OFF)
+option(ENABLE_CRYPTOPP        "Use Crypto++ cryptographic library"    ON)
 
 # ===== Target =====
 add_executable(${TARGET_NAME}
@@ -92,6 +93,15 @@ endif()
 if(ENABLE_FMT)
   find_package(fmt REQUIRED)
   target_link_libraries(${TARGET_NAME} PRIVATE fmt::fmt)
+endif()
+
+# Crypto++
+if(ENABLE_CRYPTOPP)
+  find_package(PkgConfig REQUIRED)
+  pkg_check_modules(CRYPTOPP REQUIRED libcrypto++)
+  target_link_libraries(${TARGET_NAME} PRIVATE ${CRYPTOPP_LIBRARIES})
+  target_include_directories(${TARGET_NAME} PRIVATE ${CRYPTOPP_INCLUDE_DIRS})
+  target_compile_definitions(${TARGET_NAME} PRIVATE ${CRYPTOPP_CFLAGS_OTHER})
 endif()
 
 # Eigen
