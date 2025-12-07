@@ -15,6 +15,11 @@ MAX_PASSWORD_LENGTH = 64
 
 ########## START CODE HERE ##########
 # Add any extra constants you may need
+SALT_LENGTH = 16
+DERIVED_KEY0_LENGTH = 32
+DERIVED_KEY1_LENGTH = 32
+DERIVED_KEY2_LENGTH = 32
+DERIVED_KEY_LENGTH = DERIVED_KEY0_LENGTH + DERIVED_KEY1_LENGTH + DERIVED_KEY2_LENGTH
 ########### END CODE HERE ###########
 
 
@@ -22,6 +27,7 @@ class Keychain:
     def __init__(
         self,
         ########## START CODE HERE ##########
+        password: str,
         ########### END CODE HERE ###########
     ):
         """
@@ -50,31 +56,44 @@ class Keychain:
             # (i.e. information that will not compromise security if an adversary sees).
             # This data should be dumped by the Keychain.dump function.
             # You should store the key-value store (KVS) in the "kvs" item in this dictionary.
-            "random_salt": None,
-            "kvs": None,
+            "kvs_vector": None,
         }
         self.secrets = {
             # Store member variables that you intend to be private here
             # (information that an adversary should NOT see).
             "keychain_password": None,
-            "kvs": {},
+            "session_keys": None,
+            "kvs_dict": {},
         }
-        raise NotImplementedError(
-            "Delete this line once you've implemented the Keychain constructor (__init__)"
-        )
+        # raise NotImplementedError(
+        #     "Delete this line once you've implemented the Keychain constructor (__init__)"
+        # )
         ########### END CODE HERE ###########
 
     ########## START CODE HERE ##########
     # Add any helper functions you may want to add here
     @classmethod
-    def _derive_key(cls, password: str) -> bytes:
+    def _salt(cls) -> bytes:
+        salt = get_random_bytes(SALT_LENGTH)
+        return salt
+
+    def _calculate_session_keys(self, password: str, salt: bytes) -> None:
+        password_bytes = str_to_bytes(password)
+
         derived_key = PBKDF2(
-            password=str_to_bytes(password),
-            salt=b"fixed_salt",
-            dkLen=32,
+            password=password_bytes,
+            salt=salt,
+            dkLen=DERIVED_KEY_LENGTH,
             count=PBKDF2_ITERATIONS,
         )
-        return derived_key
+
+        key0 = derived_key[0:DERIVED_KEY0_LENGTH]
+        key1 = derived_key[DERIVED_KEY0_LENGTH : DERIVED_KEY0_LENGTH + DERIVED_KEY1_LENGTH]
+        key2 = derived_key[DERIVED_KEY0_LENGTH + DERIVED_KEY1_LENGTH : DERIVED_KEY_LENGTH]
+        self.secrets["session_keys"] = []
+        self.secrets["session_keys"].append(key0)
+        self.secrets["session_keys"].append(key1)
+        self.secrets["session_keys"].append(key2)
 
     ########### END CODE HERE ###########
 
@@ -89,15 +108,15 @@ class Keychain:
             A Keychain instance
         """
         ########## START CODE HERE ##########
-        raise NotImplementedError(
-            "Delete this line once you've implemented Keychain.new"
-        )
+        keychain = Keychain(password=keychain_password)
+        return keychain
+        # raise NotImplementedError(
+        #     "Delete this line once you've implemented Keychain.new"
+        # )
         ########### END CODE HERE ###########
 
     @staticmethod
-    def load(
-        keychain_password: str, repr: str, trusted_data_check: Optional[bytes] = None
-    ) -> "Keychain":
+    def load(keychain_password: str, repr: str, trusted_data_check: Optional[bytes] = None) -> "Keychain":
         """
         Creates a new keychain from an existing key-value store.
 
@@ -119,9 +138,7 @@ class Keychain:
                 thrown for you by HMAC.verify)
         """
         ########## START CODE HERE ##########
-        raise NotImplementedError(
-            "Delete this line once you've implemented Keychain.load"
-        )
+        raise NotImplementedError("Delete this line once you've implemented Keychain.load")
         ########### END CODE HERE ###########
 
     def dump(self) -> Tuple[str, bytes]:
@@ -140,9 +157,7 @@ class Keychain:
             checksum of the JSON serialization
         """
         ########## START CODE HERE ##########
-        raise NotImplementedError(
-            "Delete this line once you've implemented Keychain.dump"
-        )
+        raise NotImplementedError("Delete this line once you've implemented Keychain.dump")
         ########### END CODE HERE ###########
 
     def get(self, domain: str) -> Optional[str]:
@@ -155,9 +170,7 @@ class Keychain:
             The password for the domain if it exists in the KVS, or None if it does not exist
         """
         ########## START CODE HERE ##########
-        raise NotImplementedError(
-            "Delete this line once you've implemented Keychain.get"
-        )
+        raise NotImplementedError("Delete this line once you've implemented Keychain.get")
         ########### END CODE HERE ###########
 
     def set(self, domain: str, password: str):
@@ -170,10 +183,22 @@ class Keychain:
             domain: the domain for the provided password. This domain may already exist in the KVS
             password: the password for the provided domain
         """
-        ########## START CODE HERE ##########
-        raise NotImplementedError(
-            "Delete this line once you've implemented Keychain.set"
-        )
+        # ########## START CODE HERE ##########
+        old_password = self.data.kvs.get(domain)
+        if old_password is not None:
+            if old_password != password:
+                # Deleting. We will re-add below
+                del self.data["kvs"][domain]
+            else:
+                # Password is the same, do nothing
+                return
+
+        if domain in self.secrets["kvs"]:
+
+            self.secrets["kvs"] = {}
+        # raise NotImplementedError(
+        #     "Delete this line once you've implemented Keychain.set"
+        # )
         ########### END CODE HERE ###########
 
     def remove(self, domain: str) -> bool:
@@ -187,7 +212,5 @@ class Keychain:
             True if the domain existed in the KVS and was removed, False otherwise
         """
         ########## START CODE HERE ##########
-        raise NotImplementedError(
-            "Delete this line once you've implemented Keychain.remove"
-        )
+        raise NotImplementedError("Delete this line once you've implemented Keychain.remove")
         ########### END CODE HERE ###########
