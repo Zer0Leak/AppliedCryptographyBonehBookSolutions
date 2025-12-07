@@ -25,14 +25,24 @@ class Keychain:
         ########### END CODE HERE ###########
     ):
         """
-        Initializes the keychain using the provided information. Note that external users should
-        likely never invoke the constructor directly and instead use either Keychain.new or
-        Keychain.load.
+                Initializes the keychain using the provided information. Note that external users should
+                likely never invoke the constructor directly and instead use either Key    tests = test_password_manager.TestFunctionality()
+            tests.test_init_without_error()
+            tests.test_set_and_retrieve_password()
+            tests.test_set_and_retrieve_multiple_passwords()
+            tests.test_get_returns_none_for_non_existent_password()
+            tests.test_can_remove_password()
+            tests.test_remove_returns_false_if_no_password_for_name()
+            tests.test_dump_and_restore_database()
+            tests.test_fails_to_restore_database_with_incorrect_checksum()
+            tests.test_fails_to_restore_database_with_incorrect_password()
+        chain.new or
+                Keychain.load.
 
-        Args:
-            You may design the constructor with any additional arguments you would like.
-        Returns:
-            None
+                Args:
+                    You may design the constructor with any additional arguments you would like.
+                Returns:
+                    None
         """
         ########## START CODE HERE ##########
         self.data = {
@@ -40,11 +50,14 @@ class Keychain:
             # (i.e. information that will not compromise security if an adversary sees).
             # This data should be dumped by the Keychain.dump function.
             # You should store the key-value store (KVS) in the "kvs" item in this dictionary.
+            "random_salt": None,
             "kvs": None,
         }
         self.secrets = {
             # Store member variables that you intend to be private here
             # (information that an adversary should NOT see).
+            "keychain_password": None,
+            "kvs": {},
         }
         raise NotImplementedError(
             "Delete this line once you've implemented the Keychain constructor (__init__)"
@@ -53,6 +66,15 @@ class Keychain:
 
     ########## START CODE HERE ##########
     # Add any helper functions you may want to add here
+    @classmethod
+    def _derive_key(cls, password: str) -> bytes:
+        derived_key = PBKDF2(
+            password=str_to_bytes(password),
+            salt=b"fixed_salt",
+            dkLen=32,
+            count=PBKDF2_ITERATIONS,
+        )
+        return derived_key
 
     ########### END CODE HERE ###########
 
@@ -67,7 +89,9 @@ class Keychain:
             A Keychain instance
         """
         ########## START CODE HERE ##########
-        raise NotImplementedError("Delete this line once you've implemented Keychain.new")
+        raise NotImplementedError(
+            "Delete this line once you've implemented Keychain.new"
+        )
         ########### END CODE HERE ###########
 
     @staticmethod
@@ -95,7 +119,9 @@ class Keychain:
                 thrown for you by HMAC.verify)
         """
         ########## START CODE HERE ##########
-        raise NotImplementedError("Delete this line once you've implemented Keychain.load")
+        raise NotImplementedError(
+            "Delete this line once you've implemented Keychain.load"
+        )
         ########### END CODE HERE ###########
 
     def dump(self) -> Tuple[str, bytes]:
@@ -114,7 +140,9 @@ class Keychain:
             checksum of the JSON serialization
         """
         ########## START CODE HERE ##########
-        raise NotImplementedError("Delete this line once you've implemented Keychain.dump")
+        raise NotImplementedError(
+            "Delete this line once you've implemented Keychain.dump"
+        )
         ########### END CODE HERE ###########
 
     def get(self, domain: str) -> Optional[str]:
@@ -127,7 +155,9 @@ class Keychain:
             The password for the domain if it exists in the KVS, or None if it does not exist
         """
         ########## START CODE HERE ##########
-        raise NotImplementedError("Delete this line once you've implemented Keychain.get")
+        raise NotImplementedError(
+            "Delete this line once you've implemented Keychain.get"
+        )
         ########### END CODE HERE ###########
 
     def set(self, domain: str, password: str):
@@ -141,7 +171,9 @@ class Keychain:
             password: the password for the provided domain
         """
         ########## START CODE HERE ##########
-        raise NotImplementedError("Delete this line once you've implemented Keychain.set")
+        raise NotImplementedError(
+            "Delete this line once you've implemented Keychain.set"
+        )
         ########### END CODE HERE ###########
 
     def remove(self, domain: str) -> bool:
@@ -155,5 +187,7 @@ class Keychain:
             True if the domain existed in the KVS and was removed, False otherwise
         """
         ########## START CODE HERE ##########
-        raise NotImplementedError("Delete this line once you've implemented Keychain.remove")
+        raise NotImplementedError(
+            "Delete this line once you've implemented Keychain.remove"
+        )
         ########### END CODE HERE ###########
