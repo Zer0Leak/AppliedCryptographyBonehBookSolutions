@@ -1,5 +1,6 @@
 import base64
 import json
+import hmac
 
 
 def dict_to_json_str(d: dict) -> str:
@@ -24,3 +25,11 @@ def encode_bytes(b: bytes) -> str:
 
 def decode_bytes(hex_str: str) -> bytes:
     return base64.b64decode(hex_str)
+
+
+def time_safe_compare(a: str, b: str) -> bool:
+    return hmac.compare_digest(a, b)
+
+
+def time_safe_compare(a: bytes, b: bytes) -> bool:
+    return hmac.compare_digest(a, b)
