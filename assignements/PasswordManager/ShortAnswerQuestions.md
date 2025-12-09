@@ -1,5 +1,43 @@
 # Project #1 (password manager) Short-answer Questions
 
+## How we generate the keys
+
+```
+                                                            +------------------+                  
+                                                        --> | HMAC("MAC Key")  |--> hmac_key
+                        +------------------------+     /    +------------------+
+get_random_bytes(16) -> |                        |    /     +------------------+
+                        | PBKDF2(derived_len=32) | -------> | HMAC("AES Key")  |--> aes_key
+user_key -------------> |                        |    \     +------------------+
+                        +------------------------+     \    +------------------+
+                                                        --> | HMAC("Sign Key") |--> sign key
+                                                            + -----------------+
+```
+
+### How we sign the keychain dumped file
+
+```
+self.data["sign"] = HMAC(sign_key, "CIn Crypto")
+```
+
+### How Domain key is stored in kvs
+
+```
+kvs key = HMAC(hmac_key, domain)
+```
+
+### How Domain value is stored in kvs
+
+```
+domain_hmac = HMAC(hmac_key, domain)
+
+        +--------------------------------------------------------------+
+        |      +----------------- AES GCM(key_aes) ------------------+ |
+value = | IV + | domain_hmac + 1_byte_length + password + pad64('.') | |
+        |      +-----------------------------------------------------+ |
+        +--------------------------------------------------------------+
+```
+
 ## Briefly describe your method for preventing the adversary from learning information about the lengths of the passwords stored in your password manager.
 
 1. The password string is padded with "." up to max length of 64
