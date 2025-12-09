@@ -357,7 +357,13 @@ class Keychain:
                 if time_safe_compare(self.secrets["kvs_dict"][domain], password):
                     if domain in self.secrets["kvs_dirty_dict"]:
                         # Remove from dirty dict if it exists
-                        del self.secrets["kvs_dirty_dict"][domain]
+                        # del self.secrets["kvs_dirty_dict"][domain]
+
+                        # WARNING: THIS WOULD BE A UNSECURE OPTIMIZATION!
+                        # If we do not change the encryption (with randon) the adversary wins CPA game
+                        # he sends (pass0, pass1), then he sends (pass0, pass0), if not changed it is Experiment 0
+                        # otherwise Experiment 1, trivially 1.0 win chance.
+                        pass
                     # No need to mark for data update
                     return
                 else:
