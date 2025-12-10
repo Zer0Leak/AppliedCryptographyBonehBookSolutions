@@ -110,7 +110,7 @@ class Keychain:
         sign = decode_bytes(encoded_sign)
         derived_keys = __class__._generate_derived_keys(password=self.secrets["keychain_password"], salt=salt)
 
-        key_sign = derived_keys[2]
+        key_sign = derived_keys[3]
         calculated_sign = HMAC.new(key=key_sign, msg=SIGN_MSG, digestmod=HMAC_MODE).digest()
         if not time_safe_compare(calculated_sign, sign):
             raise ValueError("Keychain password is incorrect.")
@@ -120,7 +120,7 @@ class Keychain:
     def _initialize_salt_and_keys(self):
         salt = get_random_bytes(SALT_LENGTH)
         derived_keys = __class__._generate_derived_keys(password=self.secrets["keychain_password"], salt=salt)
-        key_sign = derived_keys[2]
+        key_sign = derived_keys[3]
         sign = HMAC.new(key=key_sign, msg=SIGN_MSG, digestmod=HMAC_MODE).digest()
         self._set_salt_and_keys(salt=salt, sign=sign, derived_keys=derived_keys)
 
@@ -135,38 +135,38 @@ class Keychain:
             count=PBKDF2_ITERATIONS,
         )
 
-        key_hmac = HMAC.new(key=extended_key, msg=str_to_bytes("MAC Key"), digestmod=HMAC_MODE).digest()
-        key_aes = HMAC.new(key=extended_key, msg=str_to_bytes("AES Key"), digestmod=HMAC_MODE).digest()
-        key_sign = HMAC.new(key=extended_key, msg=str_to_bytes("Sign Key"), digestmod=HMAC_MODE).digest()
+        key_domain = HMAC.new(key=extended_key, msg=str_to_bytes("MAC Domain"), digestmod=HMAC_MODE).digest()
+        key_passwd = HMAC.new(key=extended_key, msg=str_to_bytes("AES Password"), digestmod=HMAC_MODE).digest()
+        key_row = HMAC.new(key=extended_key, msg=str_to_bytes("HMAC Row"), digestmod=HMAC_MODE).digest()
+        key_sign = HMAC.new(key=extended_key, msg=str_to_bytes("HMAC Sign"), digestmod=HMAC_MODE).digest()
 
-        return (key_hmac, key_aes, key_sign)
+        return (key_domain, key_passwd, key_row, key_sign)
 
     def _save(self) -> None:
-        key_hmac, key_aes, _ = self.secrets["derived_keys"]
+        key_domain, key_passwd, key_row, _ = self.secrets["derived_keys"]
 
         for domain in self.secrets["marked_for_removal_set"]:
-            domain_hmac = HMAC.new(key=key_hmac, msg=str_to_bytes(domain), digestmod=HMAC_MODE).digest()
+            domain_hmac = HMAC.new(key=key_domain, msg=str_to_bytes(domain), digestmod=HMAC_MODE).digest()
             encoded_domain_hmac = encode_bytes(domain_hmac)
             if encoded_domain_hmac in self.data["kvs"]:
                 del self.data["kvs"][encoded_domain_hmac]
 
         for domain, password in self.secrets["kvs_dirty_dict"].items():
-            length_byte = len(password).to_bytes(LENGTH_SIZE, byteorder=ENDIANNESS)
-            password_padded = password.ljust(MAX_PASSWORD_LENGTH, PADDING_BYTE)
-            password_bytes = str_to_bytes(password_padded)
+            length_bytes = len(password).to_bytes(LENGTH_SIZE, byteorder=ENDIANNESS)
+            padded_passwd = password.ljust(MAX_PASSWORD_LENGTH, PADDING_BYTE)
+            padded_passwd_bytes = str_to_bytes(padded_passwd)
+
+            len_passwd_pad_bytes = length_bytes + padded_passwd_bytes
             iv = get_random_bytes(SALT_LENGTH)
 
-            domain_hmac = HMAC.new(key=key_hmac, msg=str_to_bytes(domain), digestmod=HMAC_MODE).digest()
+            packet = iv + AES.new(key=key_passwd, mode=AES.MODE_GCM, nonce=iv).encrypt(len_passwd_pad_bytes)
 
-            row = domain_hmac + length_byte + password_bytes
-            cipher = AES.new(key=key_aes, mode=AES.MODE_GCM, nonce=iv)
-            row = cipher.encrypt(row)
-            row = iv + row
+            domain_hmac = HMAC.new(key=key_domain, msg=str_to_bytes(domain), digestmod=HMAC_MODE).digest()
+            row_hmac = HMAC.new(key=key_row, msg=domain_hmac + packet, digestmod=HMAC_MODE).digest()
 
-            encoded_domain_hmac = encode_bytes(domain_hmac)
-            encoded_row = encode_bytes(row)
-
-            self.data["kvs"][encoded_domain_hmac] = encoded_row
+            kvs_key = encode_bytes(domain_hmac)
+            kvs_value = encode_bytes(row_hmac + packet)
+            self.data["kvs"][kvs_key] = kvs_value
 
         for domain in self.secrets["marked_for_removal_set"]:
             if domain in self.secrets["kvs_dict"]:
@@ -182,35 +182,35 @@ class Keychain:
         if domain in self.secrets["kvs_dict"]:
             raise Exception("Domain is already loaded. I'm a bad programmer.")
 
-        key_hmac, key_aes, _ = self.secrets["derived_keys"]
+        key_domain, key_passwd, key_row, _ = self.secrets["derived_keys"]
 
-        domain_hmac = HMAC.new(key=key_hmac, msg=str_to_bytes(domain), digestmod=HMAC_MODE).digest()
+        domain_hmac = HMAC.new(key=key_domain, msg=str_to_bytes(domain), digestmod=HMAC_MODE).digest()
         encoded_domain_hmac = encode_bytes(domain_hmac)
 
-        encoded_row = self.data["kvs"].get(encoded_domain_hmac)
-        if encoded_row is None:
+        encoded_value = self.data["kvs"].get(encoded_domain_hmac)
+        if encoded_value is None:
             return None
-        row = decode_bytes(encoded_row)
+        value = decode_bytes(encoded_value)
 
-        iv = row[:SALT_LENGTH]
-        encrypted_row = row[SALT_LENGTH:]
+        row_hmac = value[: HMAC_MODE.digest_size]
+        packet = value[HMAC_MODE.digest_size :]
 
-        cipher = AES.new(key=key_aes, mode=AES.MODE_GCM, nonce=iv)
-        decrypted_row = cipher.decrypt(encrypted_row)
+        calculated_row_hmac = HMAC.new(key=key_row, msg=domain_hmac + packet, digestmod=HMAC_MODE).digest()
 
-        decrypted_hmac_bytes = decrypted_row[: HMAC_MODE.digest_size]
+        if not time_safe_compare(calculated_row_hmac, row_hmac):
+            raise ValueError("HMAC verification failed for domain.")
 
-        if not time_safe_compare(decrypted_hmac_bytes, domain_hmac):
-            raise ValueError("Swap attack detected (or data corrupted)!")
+        iv = packet[:SALT_LENGTH]
+        encrypted_len_passwd_pad = packet[SALT_LENGTH:]
 
-        decrypted_password_length_bytes = decrypted_row[HMAC_MODE.digest_size : HMAC_MODE.digest_size + LENGTH_SIZE]
-        decrypted_password_length = int.from_bytes(decrypted_password_length_bytes, byteorder=ENDIANNESS)
-        decrypted_password_bytes = decrypted_row[
-            HMAC_MODE.digest_size + LENGTH_SIZE : HMAC_MODE.digest_size + LENGTH_SIZE + decrypted_password_length
-        ]
-        decrypted_password_str = bytes_to_str(decrypted_password_bytes)
+        len_passwd_pad = AES.new(key=key_passwd, mode=AES.MODE_GCM, nonce=iv).decrypt(encrypted_len_passwd_pad)
 
-        self.secrets["kvs_dict"][domain] = decrypted_password_str
+        length_bytes = len_passwd_pad[:LENGTH_SIZE]
+        length = int.from_bytes(length_bytes, byteorder=ENDIANNESS)
+        password_bytes = len_passwd_pad[LENGTH_SIZE : LENGTH_SIZE + length]
+        password = bytes_to_str(password_bytes)
+
+        self.secrets["kvs_dict"][domain] = password
 
         return domain
 

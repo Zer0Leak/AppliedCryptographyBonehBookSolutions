@@ -7,4 +7,8 @@ https://github.com/Zer0Leak/AppliedCryptographyBonehBookSolutions/tree/main/assi
 
 See ShortAnswerQuestions.md
 
+# Setup
 
+python3 -m venv .venv
+source ./.venv/bin/activate
+pip install -r requirements.txt

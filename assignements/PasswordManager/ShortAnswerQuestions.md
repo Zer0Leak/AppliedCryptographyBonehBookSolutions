@@ -3,39 +3,41 @@
 ## How we generate the keys
 
 ```
-                                                            +------------------+                  
-                                                        --> | HMAC("MAC Key")  |--> hmac_key
-                        +------------------------+     /    +------------------+
-get_random_bytes(16) -> |                        |    /     +------------------+
-                        | PBKDF2(derived_len=32) | -------> | HMAC("AES Key")  |--> aes_key
-user_key -------------> |                        |    \     +------------------+
-                        +------------------------+     \    +------------------+
-                                                        --> | HMAC("Sign Key") |--> sign key
-                                                            + -----------------+
+                                                            +----------------------+                  
+                                                      +---> |  HMAC("MAC Domain")  |--> key_domain
+                        +------------------------+    |     +----------------------+
+get_random_bytes(16) -> |                        |    |     +----------------------+
+                        | PBKDF2(derived_len=32) | -------> | HMAC("AES Password") |--> key_passwd
+user_key -------------> |                        |    |     +----------------------+
+                        +------------------------+    |     +----------------------+
+                                                      +---> |   HMAC("HMAC Row")   |--> key_row
+                                                      |     + ---------------------+
+                                                      |     +----------------------+
+                                                      +---> |   HMAC("HMAC Sign")  |--> key_sign
+                                                            + ---------------------+
+
+
 ```
 
 ### How we sign the keychain dumped file
 
 ```
-self.data["sign"] = HMAC(sign_key, "CIn Crypto")
+self.data["sign"] = HMAC(key_sign, "CIn Crypto")
 ```
 
-### How Domain key is stored in kvs
+### How Domain/Value is stored in kvs
 
 ```
-kvs key = HMAC(hmac_key, domain)
-```
+domain_hmac = HMAC(key_domain, domain)
 
-### How Domain value is stored in kvs
+              +------- AES_GCM(key_passwd, IV) -------+
+packet = IV + | 1_byte_length + password + pad64('.') |
+              +---------------------------------------+
 
-```
-domain_hmac = HMAC(hmac_key, domain)
+row_hmac = HMAC(key_row, domain_hmac + packet)
 
-        +--------------------------------------------------------------+
-        |      +----------------- AES GCM(key_aes) ------------------+ |
-value = | IV + | domain_hmac + 1_byte_length + password + pad64('.') | |
-        |      +-----------------------------------------------------+ |
-        +--------------------------------------------------------------+
+kvs_key = domain_hmac
+kvs_value = row_hmac + packet
 ```
 
 ## Briefly describe your method for preventing the adversary from learning information about the lengths of the passwords stored in your password manager.
