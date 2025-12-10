@@ -346,29 +346,9 @@ class Keychain:
             if len(password) > MAX_PASSWORD_LENGTH:
                 raise ValueError("Password is too long.")
 
+            # If was marked for removal, unmark it
             if domain in self.secrets["marked_for_removal_set"]:
                 self.secrets["marked_for_removal_set"].remove(domain)
-
-            if domain not in self.secrets["kvs_dict"]:
-                # try to load if not load before
-                self._load_domain_from_data_kvs(domain)
-
-            if domain in self.secrets["kvs_dict"]:
-                if time_safe_compare(self.secrets["kvs_dict"][domain], password):
-                    if domain in self.secrets["kvs_dirty_dict"]:
-                        # Remove from dirty dict if it exists
-                        # del self.secrets["kvs_dirty_dict"][domain]
-
-                        # WARNING: THIS WOULD BE A UNSECURE OPTIMIZATION!
-                        # If we do not change the encryption (with randon) the adversary wins CPA game
-                        # he sends (pass0, pass1), then he sends (pass0, pass0), if not changed it is Experiment 0
-                        # otherwise Experiment 1, trivially 1.0 win chance.
-                        pass
-                    # No need to mark for data update
-                    return
-                else:
-                    # domain exists but password is different, so we need to update
-                    pass
 
             # mark to update in data.kvs
             self.secrets["kvs_dirty_dict"][domain] = password
@@ -404,9 +384,6 @@ class Keychain:
             if domain in self.secrets["kvs_dict"]:
                 self.secrets["marked_for_removal_set"].add(domain)
                 removed = True
-            else:
-                # May be it was removed from kvs_dirty_dict. i.e. removed before ever serialized.
-                pass
 
             return removed
         ########### END CODE HERE ###########
