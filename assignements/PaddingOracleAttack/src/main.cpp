@@ -71,6 +71,12 @@ int main(int, char *[]) {
         auto original_previous_block_bytes = hex_to_bytes_unchecked<std::vector<std::byte>>(previous_block);
 
         auto known_chars = 0;
+
+        auto last_block_deteced_padding_length = 0;
+        if (know_blocks == num_blocks - 1) {
+            // TODO: last block special case. tot detect padding length first
+            last_block_deteced_padding_length = 9;
+        }
         while (known_chars < block_size / 2) {
             std::print("\n know_chars: {} -> ", known_chars);
             std::fflush(stdout);
@@ -78,7 +84,14 @@ int main(int, char *[]) {
             const auto guess_pos = block_size / 2 - known_chars - 1;
             const auto guess_hex_pos = guess_pos * 2;
 
-            const auto pad = static_cast<std::byte>(known_chars + 1);
+            auto pad = static_cast<std::byte>(known_chars + 1);
+
+            if (know_blocks == num_blocks - 1) {
+                if (known_chars < last_block_deteced_padding_length) {
+                    pad = static_cast<std::byte>(last_block_deteced_padding_length);
+                }
+            }
+
             for (auto i = 0; i < known_chars; ++i) {
                 const auto pos = block_size / 2 - 1 - i;
                 const auto hex_pos = pos * 2;
@@ -93,6 +106,14 @@ int main(int, char *[]) {
                             16);
             bool byte_found = false;
             for (uint16_t guess = 0x00; guess <= 0xFF; ++guess) {
+                if (know_blocks == num_blocks - 1) {
+                    // TODO: last block special case. tot detect padding length first
+                    // known_chars = 8;
+                    if (known_chars == 0 && guess == 0x01) {
+                        continue;
+                    }
+                }
+
                 const auto replacing_byte =
                     static_cast<std::byte>(c_byte ^ static_cast<uint8_t>(guess) ^ std::to_integer<uint8_t>(pad));
                 byte_to_hex(replacing_byte, previous_block.data() + guess_hex_pos);
@@ -103,6 +124,7 @@ int main(int, char *[]) {
                 if (const auto status = query_padding_oracle(query_param)) {
                     if (*status == 404) {
                         std::print("[0x{:x}]", guess);
+                        std::fflush(stdout);
                         current_decrypted_block_bytes[guess_pos] = static_cast<std::byte>(guess);
                         byte_found = true;
                         break;
