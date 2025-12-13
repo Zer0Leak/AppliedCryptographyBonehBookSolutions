@@ -50,23 +50,27 @@ auto query_padding_oracle(std::string_view parameter) -> std::optional<long> {
 } // namespace
 
 static int detect_last_block_padding_length(int block_size, std::string_view parameter) {
+    const int block_size_hex = block_size * 2;
     for (int pad_len = block_size; pad_len > 0; --pad_len) {
         std::string modified_blocks = std::string(parameter);
-        const auto pos = modified_blocks.size() / 2 - block_size - pad_len;
+        std::span<char> previous_hex_block =
+            std::span<char>(modified_blocks).subspan(modified_blocks.size() - (2 * block_size_hex), block_size_hex);
+        const auto pos = block_size - pad_len;
         const auto hex_pos = pos * 2;
         uint8_t c_byte = 0;
-        std::from_chars(modified_blocks.data() + hex_pos, modified_blocks.data() + hex_pos + 2, c_byte, 16);
-        c_byte ^= 0xFF;
-        byte_to_hex(std::byte{c_byte}, modified_blocks.data() + hex_pos);
+        std::from_chars(previous_hex_block.data() + hex_pos, previous_hex_block.data() + hex_pos + 2, c_byte, 16);
+        const auto replacing_byte =
+            static_cast<std::byte>(c_byte ^ static_cast<uint8_t>(pad_len - 1) ^ static_cast<uint8_t>(pad_len));
+        byte_to_hex(std::byte{replacing_byte}, previous_hex_block.data() + hex_pos);
         auto status = query_padding_oracle(modified_blocks);
         if (status) {
-            if (*status != 403) {
+            if (*status == 403) {
                 // mal formed padding
                 return pad_len;
             }
         }
     }
-    throw std::runtime_error("Failed to detect padding length");
+    return block_size;
 }
 
 int main(int, char *[]) {
@@ -76,6 +80,7 @@ int main(int, char *[]) {
     auto curlGlobal = std::unique_ptr<void, void (*)(void *)>{(curl_global_init(CURL_GLOBAL_DEFAULT), nullptr),
                                                               [](void *) { curl_global_cleanup(); }};
 
+    // The Magic Words are Squeamish Ossifrage
     const std::string hex_original_parameter = R"(f20bdba6ff29eed7b046d1df9fb70000)"
                                                R"(58b1ffb4210a580f748b4ac714c001bd)"
                                                R"(4a61044426fb515dad3f21f18aa577c0)"
@@ -102,8 +107,7 @@ int main(int, char *[]) {
             auto query_param =
                 std::string_view(hex_parameter).substr(know_blocks * block_size_hex, block_size_hex + block_size_hex);
             // last_block_deteced_padding_length = detect_last_block_padding_length(block_size, hex_original_parameter);
-            // last_block_deteced_padding_length = detect_last_block_padding_length(block_size, query_param);
-            last_block_deteced_padding_length = 9;
+            last_block_deteced_padding_length = detect_last_block_padding_length(block_size, query_param);
         }
         while (known_chars < block_size) {
             if ((know_blocks == num_blocks - 1) && (known_chars < last_block_deteced_padding_length)) {
