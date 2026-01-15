@@ -1,0 +1,77 @@
+{
+    "cmake.generator": "Ninja",
+    "cmake.configureOnOpen": true,
+
+    "cmake.useCMakePresets": "always",
+    // line below already set by presets
+    // "cmake.buildDirectory": "/mnt/ram/BreakRSA/build/Active",
+    "C_Cpp.default.compileCommands": "/mnt/ram/BreakRSA/build/Active/compile_commands.json",
+
+    // Keep the compile_commands.json exported by CMake
+    "cmake.exportCompileCommandsFile": true,
+
+    // ensure clang compilers (same as CLI)
+    "cmake.configureArgs": [
+        "-DCMAKE_C_COMPILER=clang",
+        "-DCMAKE_CXX_COMPILER=clang++"
+    ],
+
+    // 🔽 Build the active target before running it
+    // "cmake.buildBeforeRun": true,
+
+    // Use clangd for IntelliSense, disable cpptools analysis engine
+    "C_Cpp.intelliSenseEngine": "disabled",
+    "C_Cpp.default.cppStandard": "c++23",
+
+    // Let CMake Tools feed include paths and defines to cpptools (for debugging)
+    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+    "clangd.arguments": [
+        "--compile-commands-dir=/mnt/ram/BreakRSA/build/Active",
+        "--query-driver=/usr/bin/clang++,/usr/bin/clang-*"
+    ],
+
+    // Ensure fallback compiler & IntelliSense mode (mainly affects debugging, not clangd)
+    "C_Cpp.default.compilerPath": "/usr/bin/clang++",
+    "C_Cpp.default.intelliSenseMode": "linux-clang-x64",
+
+
+    "python-envs.defaultEnvManager": "ms-python.python:system",
+    "python-envs.pythonProjects": [],
+
+    // auto target intro
+    "cmake.configureOnEdit": true,
+    "cmake.buildBeforeRun": true,
+
+    // indent
+    "editor.detectIndentation": false,
+    "[c]": {
+        "editor.insertSpaces": true,
+        "editor.tabSize": 4
+    },
+    "[cpp]": {
+        "editor.insertSpaces": true,
+        "editor.tabSize": 4
+    },
+
+    // clang format
+    "C_Cpp.formatting": "clangFormat",
+    "C_Cpp.clang_format_style": "file",
+    // If you use clangd extension instead of cpptools:
+    "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd",
+    "editor.formatOnSave": true,
+
+
+    // Set max line length for formatting/word wrap
+    "editor.rulers": [120],
+
+    // Optional: control automatic wrapping
+    "editor.wordWrap": "off",          // or "wordWrapColumn"
+    "editor.wordWrapColumn": 120,
+
+    // For clang-format: enforce 120 chars
+    "C_Cpp.clang_format_fallbackStyle": "{ BasedOnStyle: LLVM, ColumnLimit: 120 }",
+
+    "debug.inlineValues": "on",
+    "C_Cpp.debugger.useHexFormatting": true,
+    "lldb.displayFormat": "hex"
+}
